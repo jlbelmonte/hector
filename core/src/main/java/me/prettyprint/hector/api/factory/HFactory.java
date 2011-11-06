@@ -59,6 +59,8 @@ import me.prettyprint.hector.api.ddl.ColumnDefinition;
 import me.prettyprint.hector.api.ddl.ColumnFamilyDefinition;
 import me.prettyprint.hector.api.ddl.ComparatorType;
 import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
+import me.prettyprint.hector.api.deletion.ColumnFamilyDelete;
+import me.prettyprint.hector.api.deletion.SuperColumnFamilyDelete;
 import me.prettyprint.hector.api.mutation.Mutator;
 import me.prettyprint.hector.api.query.ColumnQuery;
 import me.prettyprint.hector.api.query.CountQuery;
@@ -197,7 +199,7 @@ public final class HFactory {
           cassandraHostConfigurator, credentials) : clusters.get(clusterName);
     }
   }
-  
+
   /**
    * Shutdown this cluster, removing it from the Map. This operation is
    * extremely expensive and should not be done lightly.
@@ -331,11 +333,11 @@ public final class HFactory {
       Serializer<K> keySerializer) {
     return new MutatorImpl<K>(keyspace, keySerializer);
   }
-  
+
   public static <K, N, V> Mutator<K> createMutator(Keyspace keyspace,
-	      Serializer<K> keySerializer, BatchSizeHint sizeHint) {
-	    return new MutatorImpl<K>(keyspace, keySerializer, sizeHint);
-	  }
+          Serializer<K> keySerializer, BatchSizeHint sizeHint) {
+        return new MutatorImpl<K>(keyspace, keySerializer, sizeHint);
+      }
 
   public static <K, N, V> ColumnQuery<K, N, V> createColumnQuery(
       Keyspace keyspace, Serializer<K> keySerializer,
@@ -343,7 +345,7 @@ public final class HFactory {
     return new ThriftColumnQuery<K, N, V>(keyspace, keySerializer,
         nameSerializer, valueSerializer);
   }
-  
+
   public static <K, N> CounterQuery<K, N> createCounterColumnQuery(
       Keyspace keyspace, Serializer<K> keySerializer, Serializer<N> nameSerializer) {
     return new ThriftCounterColumnQuery<K, N>(keyspace, keySerializer, nameSerializer);
@@ -490,7 +492,7 @@ public final class HFactory {
     return new ThriftSliceQuery<K, N, V>(keyspace, keySerializer,
         nameSerializer, valueSerializer);
   }
-  
+
   public static <K, N> SliceCounterQuery<K, N> createCounterSliceQuery(
       Keyspace keyspace, Serializer<K> keySerializer, Serializer<N> nameSerializer) {
     return new ThriftSliceCounterQuery<K, N>(keyspace, keySerializer, nameSerializer);
@@ -537,7 +539,7 @@ public final class HFactory {
     return new HSuperColumnImpl<SN, N, V>(name, columns, clock,
         superNameSerializer, nameSerializer, valueSerializer);
   }
-  
+
   public static <SN, N> HCounterSuperColumn<SN, N> createCounterSuperColumn(SN name,
       List<HCounterColumn<N>> columns, Serializer<SN> superNameSerializer, Serializer<N> nameSerializer) {
     return new HCounterSuperColumnImpl<SN, N>(name, columns, superNameSerializer, nameSerializer);
@@ -550,9 +552,9 @@ public final class HFactory {
   }
 
   public static <N, V> HColumn<N, V> createColumn(N name, V value, long clock, int ttl,
-	      Serializer<N> nameSerializer, Serializer<V> valueSerializer) {
-	    return new HColumnImpl<N, V>(name, value, clock, ttl, nameSerializer,
-	        valueSerializer);
+          Serializer<N> nameSerializer, Serializer<V> valueSerializer) {
+        return new HColumnImpl<N, V>(name, value, clock, ttl, nameSerializer,
+            valueSerializer);
   }
 
   /**
@@ -572,7 +574,7 @@ public final class HFactory {
     return new HColumnImpl<N, V>(name, value, createClock(), ttl, nameSerializer,
         valueSerializer);
   }
-  
+
   /**
    * Convienience method for creating a column with a String name and String
    * value
@@ -582,20 +584,44 @@ public final class HFactory {
     StringSerializer se = StringSerializer.get();
     return createColumn(name, value, se, se);
   }
-  
+
   /**
    * Create a counter column with a name and long value
    */
   public static <N> HCounterColumn<N> createCounterColumn(N name, long value, Serializer<N> nameSerializer) {
     return new HCounterColumnImpl<N>(name, value, nameSerializer);
   }
-  
+
   /**
    * Convenient method for creating a counter column with a String name and long value
    */
   public static HCounterColumn<String> createCounterColumn(String name, long value) {
     StringSerializer se = StringSerializer.get();
     return createCounterColumn(name, value, se);
+  }
+  /**
+   *Delete all the rows from a given column family
+   */
+  public static void clearColumnFamily(Keyspace ksp, String columnFamilyName){
+    ColumnFamilyDelete.clearColumnFamily(ksp, columnFamilyName);
+  }
+  /**
+   *set to zero all counter columns values from a given counter column family
+   */
+  public static void clearCounterColumnFamily(Keyspace ksp, String columnFamilyName){
+    ColumnFamilyDelete.clearCounterColumnFamily(ksp, columnFamilyName);
+  }
+  /**
+   *Delete all the rows from a given super column family
+   */
+  public static void clearSuperColumnFamily(Keyspace ksp, String columnFamilyName){
+    SuperColumnFamilyDelete.clearSuperColumnFamily(ksp, columnFamilyName);
+  }
+  /**
+   *set to zero all counter columns values from a given super counter column family
+   */
+  public static void clearSuperCounterColumnFamily(Keyspace ksp, String columnFamilyName){
+    SuperColumnFamilyDelete.clearSuperCounterColumnFamily(ksp, columnFamilyName);
   }
 
   /**
